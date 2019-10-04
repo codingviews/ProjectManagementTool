@@ -1,8 +1,8 @@
 package com.cviews.ppmtool.web;
 
 import com.cviews.ppmtool.model.Project;
+import com.cviews.ppmtool.service.ErrorValidationService;
 import com.cviews.ppmtool.service.ProjectService;
-import com.cviews.ppmtool.utils.ErrorHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -18,15 +18,17 @@ import javax.validation.Valid;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final ErrorValidationService errorValidationService;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, ErrorValidationService errorValidationService) {
         this.projectService = projectService;
+        this.errorValidationService = errorValidationService;
     }
 
     @PostMapping("create")
     public ResponseEntity<?> create(@Valid @RequestBody Project project, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return new ResponseEntity<>(ErrorHandler.resultErrors(bindingResult.getFieldErrors()), HttpStatus.BAD_REQUEST);
+            return errorValidationService.validate(bindingResult.getFieldErrors());
         }
         
         Project savedProject = projectService.saveOrUpdate(project);
